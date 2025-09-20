@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="mr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>कृषिMitra</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background: #f5f5f5;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        height: 100vh;
+        text-align: center;
+        color: #2b4c7c;
+        padding: 20px;
+        box-sizing: border-box;
+      }
+      h1 {
+        margin-bottom: 16px;
+      }
+      .sub {
+        margin-bottom: 18px;
+        color: #476089;
+      }
+      .controls {
+        width: 100%;
+        max-width: 360px;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        align-items: center;
+      }
+      .lang-row {
+        width: 100%;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .btn {
+        display: block;
+        margin: 0;
+        padding: 15px 20px;
+        border: none;
+        border-radius: 8px;
+        font-size: 16px;
+        font-weight: bold;
+        cursor: pointer;
+        text-decoration: none;
+        color: white;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      .btn-primary {
+        background: #2b4c7c;
+      }
+      .btn-secondary {
+        background: #4a7c59;
+      }
+      .btn-accent {
+        background: #e67e22;
+      }
+      .btn-danger {
+        background: #c0392b;
+      }
+      select {
+        padding: 10px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+      }
+      .small-note {
+        font-size: 0.85rem;
+        color: #666;
+      }
+    </style>
+  </head>
+  <body>
+    <h1 id="title">🌱 कृषिMitra</h1>
+    <div class="sub" id="subtitle">कृषी सहाय्य — तुमच्यासाठी सोपे पावले</div>
+
+    <div class="controls">
+      <div class="lang-row">
+        <label id="language_label" style="font-weight: bold">भाषा</label>
+        <div style="display: flex; gap: 8px; align-items: center">
+          <select id="langSelect">
+            <option value="mr">मराठी</option>
+            <option value="en">English</option>
+            <option value="hi">हिंदी</option>
+          </select>
+          <div class="small-note" id="note_trans">डिफॉल्ट: मराठी</div>
+        </div>
+      </div>
+
+      <a href="/yield" class="btn btn-primary" id="btn_yield">
+        Crop Yield Prediction
+      </a>
+      <a href="/crop" class="btn btn-secondary" id="btn_crop">
+        New Crop Suggestions
+      </a>
+      <a href="/disease" class="btn btn-danger" id="btn_disease">
+        Plant Disease Detection
+      </a>
+      <a href="/weather" class="btn btn-accent" id="btn_weather">
+        Weather Alerts
+      </a>
+    </div>
+
+    <script>
+      const translations = {
+        mr: {
+          title: "🌱 कृषिMitra",
+          subtitle: "कृषी सहाय्य — तुमच्यासाठी सोपे पावले",
+          language_label: "भाषा",
+          note_trans: "डिफॉल्ट: मराठी",
+          btn_yield: "पीक उत्पादन अंदाज",
+          btn_crop: "नवीन पीक सुचवणी",
+          btn_disease: "वनस्पती रोग ओळख",
+          btn_weather: "हवामान सूचना",
+        },
+        en: {
+          title: "🌱 कृषिMitra",
+          subtitle: "Agriculture help — simple steps for you",
+          language_label: "Language",
+          note_trans: "Default: Marathi",
+          btn_yield: "Crop Yield Prediction",
+          btn_crop: "New Crop Suggestions",
+          btn_disease: "Plant Disease Detection",
+          btn_weather: "Weather Alerts",
+        },
+        hi: {
+          title: "🌱 कृषिMitra",
+          subtitle: "कृषि सहायता — आपके लिए सरल कदम",
+          language_label: "भाषा",
+          note_trans: "डिफ़ॉल्ट: मराठी",
+          btn_yield: "फसल उत्पादकता अनुमान",
+          btn_crop: "नई फसल सुझाव",
+          btn_disease: "पौध रोग पहचान",
+          btn_weather: "मौसम सूचनाएं",
+        },
+      };
+
+      const langSelect = document.getElementById("langSelect");
+      function applyTranslations(lang) {
+        const t = translations[lang] || translations["mr"];
+        document.getElementById("title").innerText = t.title;
+        document.getElementById("subtitle").innerText = t.subtitle;
+        document.getElementById("language_label").innerText = t.language_label;
+        document.getElementById("note_trans").innerText = t.note_trans;
+        document.getElementById("btn_yield").innerText = t.btn_yield;
+        document.getElementById("btn_crop").innerText = t.btn_crop;
+        document.getElementById("btn_disease").innerText = t.btn_disease;
+        document.getElementById("btn_weather").innerText = t.btn_weather;
+        document.documentElement.lang = lang;
+      }
+
+      // default Marathi
+      applyTranslations("mr");
+
+      langSelect.addEventListener("change", (e) =>
+        applyTranslations(e.target.value)
+      );
+    </script>
+  </body>
+</html>

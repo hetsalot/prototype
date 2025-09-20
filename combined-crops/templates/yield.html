@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html lang="mr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crop Yield Prediction</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background: #f5f5f5;
+        padding: 20px;
+        color: #2b4c7c;
+      }
+      h2 {
+        text-align: center;
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+        max-width: 480px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      }
+      .field {
+        margin: 8px 0 14px 0;
+      }
+      .field-label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 6px;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 12px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+      }
+      button {
+        padding: 12px;
+        border: none;
+        border-radius: 6px;
+        background: #2b4c7c;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .result {
+        margin-top: 20px;
+        padding: 15px;
+        background: #e67e22;
+        color: white;
+        text-align: center;
+        border-radius: 6px;
+      }
+      .lang-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 12px;
+      }
+      .small-note {
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2 id="page_title">🌾 Crop Yield Prediction</h2>
+
+    <form method="POST" action="/predict_yield">
+      <div class="lang-row">
+        <div>
+          <label class="field-label" id="language_label">भाषा</label>
+          <select id="langSelect">
+            <option value="mr">मराठी</option>
+            <option value="en">English</option>
+            <option value="hi">हिंदी</option>
+          </select>
+        </div>
+        <div style="text-align: right; align-self: end">
+          <span class="small-note" id="note_trans"
+            >Default language: Marathi</span
+          >
+        </div>
+      </div>
+
+      <div class="field">
+        <label class="field-label" data-key="year_label">वर्ष</label>
+        <input
+          type="number"
+          name="Year"
+          id="year_input"
+          placeholder="वर्ष"
+          required
+        />
+      </div>
+
+      <div class="field">
+        <label class="field-label" data-key="rain_label"
+          >सरासरी पर्जन्य (मिमी/वर्ष)</label
+        >
+        <input
+          type="number"
+          step="any"
+          name="average_rain_fall_mm_per_year"
+          id="rain_input"
+          placeholder="सरासरी पर्जन्य (मिमी/वर्ष)"
+          required
+        />
+      </div>
+
+      <div class="field">
+        <label class="field-label" data-key="pesticide_label"
+          >किटकनाशके (टन)</label
+        >
+        <input
+          type="number"
+          step="any"
+          name="pesticides_tonnes"
+          id="pesticide_input"
+          placeholder="किटकनाशके (टन)"
+          required
+        />
+      </div>
+
+      <div class="field">
+        <label class="field-label" data-key="temp_label"
+          >सरासरी तापमान (°C)</label
+        >
+        <input
+          type="number"
+          step="any"
+          name="avg_temp"
+          id="temp_input"
+          placeholder="सरासरी तापमान (°C)"
+          required
+        />
+      </div>
+
+      <!-- Country field: keep name="Area" as requested (server-side logic unchanged) -->
+      <div class="field">
+        <label class="field-label" data-key="country_label">देश</label>
+        <select name="Area" id="country_select">
+          <option value="India" selected>India</option>
+          <option value="Nepal">Nepal</option>
+          <option value="Bangladesh">Bangladesh</option>
+          <option value="Sri Lanka">Sri Lanka</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <!-- State and District (India) -->
+      <div class="field">
+        <label class="field-label" data-key="state_label">राज्य / State</label>
+        <select name="state" id="state_select">
+          <option value="">-- Select State --</option>
+          <option value="Maharashtra">Maharashtra</option>
+          <option value="Karnataka">Karnataka</option>
+          <option value="Tamil Nadu">Tamil Nadu</option>
+          <option value="Uttar Pradesh">Uttar Pradesh</option>
+          <option value="Delhi">Delhi</option>
+          <option value="Other">Other</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label class="field-label" data-key="district_label"
+          >जिल्हा / District</label
+        >
+        <select name="district" id="district_select">
+          <option value="">-- Select District --</option>
+        </select>
+        <!-- fallback text input shown when user selects 'Other' in district list -->
+        <input
+          type="text"
+          id="district_text"
+          placeholder="Enter district"
+          style="display: none; margin-top: 8px"
+        />
+      </div>
+
+      <div class="field">
+        <label class="field-label" data-key="crop_label"
+          >पीकाचे नाव / Crop Name</label
+        >
+        <input
+          type="text"
+          name="Item"
+          id="crop_input"
+          placeholder="पीकाचे नाव"
+          required
+        />
+      </div>
+
+      <button type="submit" id="submit_button">उत्पन्न अंदाज</button>
+    </form>
+
+    <a
+      href="/"
+      style="
+        display: block;
+        text-align: center;
+        margin-top: 15px;
+        color: #2b4c7c;
+        text-decoration: none;
+      "
+      id="back_link"
+      >&#8592; मुख्यपृष्ठावर परत</a
+    >
+
+    {% if prediction %}
+    <div class="result">Predicted Yield: {{ prediction }}</div>
+    {% endif %}
+
+    <script>
+      // --- Translations (short and editable) ---
+      const translations = {
+        mr: {
+          page_title: "🌾 पीक उत्पादन अंदाज",
+          language_label: "भाषा",
+          note_trans: "डिफॉल्ट भाषा: मराठी",
+          year_label: "वर्ष",
+          year_placeholder: "वर्ष",
+          rain_label: "सरासरी पर्जन्य (मिमी/वर्ष)",
+          rain_placeholder: "सरासरी पर्जन्य (मिमी/वर्ष)",
+          pesticide_label: "किटकनाशके (टन)",
+          pesticide_placeholder: "किटकनाशके (टन)",
+          temp_label: "सरासरी तापमान (°C)",
+          temp_placeholder: "सरासरी तापमान (°C)",
+          country_label: "देश",
+          state_label: "राज्य / State",
+          district_label: "जिल्हा / District",
+          crop_label: "पीकाचे नाव / Crop Name",
+          crop_placeholder: "पीकाचे नाव",
+          submit_button: "उत्पन्न अंदाज",
+          back_link: "← मुख्यपृष्ठावर परत",
+        },
+        en: {
+          page_title: "🌾 Crop Yield Prediction",
+          language_label: "Language",
+          note_trans: "Default language: Marathi",
+          year_label: "Year",
+          year_placeholder: "Year",
+          rain_label: "Avg Rainfall (mm/year)",
+          rain_placeholder: "Avg Rainfall (mm/year)",
+          pesticide_label: "Pesticides (tonnes)",
+          pesticide_placeholder: "Pesticides (tonnes)",
+          temp_label: "Avg Temperature (°C)",
+          temp_placeholder: "Avg Temperature (°C)",
+          country_label: "Country",
+          state_label: "State",
+          district_label: "District",
+          crop_label: "Crop Name",
+          crop_placeholder: "Crop Name",
+          submit_button: "Predict Yield",
+          back_link: "← Back to Home",
+        },
+        hi: {
+          page_title: "🌾 फसल उत्पादकता अनुमान",
+          language_label: "भाषा",
+          note_trans: "डिफ़ॉल्ट भाषा: मराठी",
+          year_label: "वर्ष",
+          year_placeholder: "वर्ष",
+          rain_label: "औसत वर्षा (मिमी/वर्ष)",
+          rain_placeholder: "औसत वर्षा (मिमी/वर्ष)",
+          pesticide_label: "कीटनाशक (टन)",
+          pesticide_placeholder: "कीटनाशक (टन)",
+          temp_label: "औसत तापमान (°C)",
+          temp_placeholder: "औसत तापमान (°C)",
+          country_label: "देश",
+          state_label: "राज्य",
+          district_label: "जिला",
+          crop_label: "फसल का नाम",
+          crop_placeholder: "फसल का नाम",
+          submit_button: "उत्पादन अनुमान",
+          back_link: "← मुख पृष्ठ पर वापस",
+        },
+      };
+
+      // --- Simple district data for a few states ---
+      const districtsByState = {
+        Maharashtra: ["Mumbai", "Pune", "Nagpur", "Nashik", "Other"],
+        Karnataka: ["Bengaluru Urban", "Mysuru", "Mangaluru", "Hubli", "Other"],
+        "Tamil Nadu": [
+          "Chennai",
+          "Coimbatore",
+          "Madurai",
+          "Tiruchirappalli",
+          "Other",
+        ],
+        "Uttar Pradesh": ["Lucknow", "Kanpur", "Varanasi", "Agra", "Other"],
+        Delhi: ["New Delhi", "North Delhi", "South Delhi", "Other"],
+      };
+
+      const langSelect = document.getElementById("langSelect");
+      const pageTitle = document.getElementById("page_title");
+      const noteTrans = document.getElementById("note_trans");
+      const submitButton = document.getElementById("submit_button");
+      const backLink = document.getElementById("back_link");
+
+      function applyTranslations(lang) {
+        const t = translations[lang] || translations["mr"];
+        pageTitle.innerText = t.page_title;
+        document.getElementById("language_label").innerText = t.language_label;
+        noteTrans.innerText = t.note_trans;
+        document.querySelector('[data-key="year_label"]').innerText =
+          t.year_label;
+        document.getElementById("year_input").placeholder = t.year_placeholder;
+
+        document.querySelector('[data-key="rain_label"]').innerText =
+          t.rain_label;
+        document.getElementById("rain_input").placeholder = t.rain_placeholder;
+
+        document.querySelector('[data-key="pesticide_label"]').innerText =
+          t.pesticide_label;
+        document.getElementById("pesticide_input").placeholder =
+          t.pesticide_placeholder;
+
+        document.querySelector('[data-key="temp_label"]').innerText =
+          t.temp_label;
+        document.getElementById("temp_input").placeholder = t.temp_placeholder;
+
+        document.querySelector('[data-key="country_label"]').innerText =
+          t.country_label;
+        document.querySelector('[data-key="state_label"]').innerText =
+          t.state_label;
+        document.querySelector('[data-key="district_label"]').innerText =
+          t.district_label;
+        document.querySelector('[data-key="crop_label"]').innerText =
+          t.crop_label;
+        document.getElementById("crop_input").placeholder = t.crop_placeholder;
+        submitButton.innerText = t.submit_button;
+        backLink.innerText = t.back_link;
+
+        // set html lang attribute
+        document.documentElement.lang = lang;
+      }
+
+      // initial language: Marathi
+      applyTranslations("mr");
+
+      langSelect.addEventListener("change", (e) => {
+        applyTranslations(e.target.value);
+      });
+
+      // Populate district select when state changes
+      const stateSelect = document.getElementById("state_select");
+      const districtSelect = document.getElementById("district_select");
+      const districtText = document.getElementById("district_text");
+
+      stateSelect.addEventListener("change", (e) => {
+        const st = e.target.value;
+        // clear districts
+        districtSelect.innerHTML = "";
+        const defaultOpt = document.createElement("option");
+        defaultOpt.value = "";
+        defaultOpt.innerText = "-- Select District --";
+        districtSelect.appendChild(defaultOpt);
+
+        if (districtsByState[st]) {
+          districtsByState[st].forEach((d) => {
+            const opt = document.createElement("option");
+            opt.value = d;
+            opt.innerText = d;
+            districtSelect.appendChild(opt);
+          });
+          districtSelect.style.display = "block";
+          districtText.style.display = "none";
+        } else if (st === "Other" || st === "") {
+          // show a text input for district if Other or blank
+          districtSelect.style.display = "block";
+          districtText.style.display = "block";
+        } else {
+          // If state not in our small list, show text input to let user type district
+          districtSelect.style.display = "block";
+          const optOther = document.createElement("option");
+          optOther.value = "Other";
+          optOther.innerText = "Other";
+          districtSelect.appendChild(optOther);
+          districtText.style.display = "block";
+        }
+      });
+
+      // When district 'Other' is selected, show the text input
+      districtSelect.addEventListener("change", (e) => {
+        if (e.target.value === "Other") {
+          districtText.style.display = "block";
+        } else {
+          districtText.style.display = "none";
+        }
+      });
+
+      // keep the district_text value in a hidden input named 'district' when shown
+      // (we won't create extra server-visible inputs beyond name='district' select)
+      // When submitting, if district_text is visible and has a value, copy it to a hidden input
+      const form = document.querySelector("form");
+      form.addEventListener("submit", () => {
+        if (
+          districtText.style.display !== "none" &&
+          districtText.value.trim()
+        ) {
+          // remove existing hidden input if any
+          const existing = document.querySelector(
+            'input[name="district_hidden"]'
+          );
+          if (existing) existing.remove();
+          const hidden = document.createElement("input");
+          hidden.type = "hidden";
+          hidden.name = "district";
+          hidden.value = districtText.value.trim();
+          hidden.setAttribute("name", "district");
+          hidden.setAttribute("value", districtText.value.trim());
+          hidden.setAttribute("name", "district");
+          hidden.name = "district";
+          hidden.setAttribute("id", "district_hidden");
+          form.appendChild(hidden);
+        }
+        // if district select has a selected non-empty value and it's not Other,
+        // it will be submitted with name='district' so server gets it.
+      });
+    </script>
+  </body>
+</html>

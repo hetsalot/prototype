@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="mr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Crop Suggestions</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background: #f5f5f5;
+        padding: 20px;
+        color: #2b4c7c;
+      }
+      h2 {
+        text-align: center;
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+        max-width: 480px;
+        margin: auto;
+        background: white;
+        padding: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+      }
+      .field {
+        margin: 8px 0 14px 0;
+      }
+      .field-label {
+        display: block;
+        font-weight: bold;
+        margin-bottom: 6px;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 12px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+        box-sizing: border-box;
+      }
+      button {
+        padding: 12px;
+        border: none;
+        border-radius: 6px;
+        background: #4a7c59;
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .result {
+        margin-top: 20px;
+        padding: 15px;
+        background: #e67e22;
+        color: white;
+        text-align: center;
+        border-radius: 6px;
+      }
+      .lang-row {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        align-items: center;
+        margin-bottom: 12px;
+        max-width: 480px;
+        margin-left: auto;
+        margin-right: auto;
+      }
+      .small-note {
+        font-size: 0.85rem;
+        color: #666;
+        margin-top: 6px;
+      }
+    </style>
+  </head>
+  <body>
+    <h2 id="page_title">🌿 New Crop Suggestions</h2>
+
+    <div class="lang-row">
+      <div>
+        <label class="field-label" id="language_label">भाषा</label>
+        <select id="langSelect">
+          <option value="mr">मराठी</option>
+          <option value="en">English</option>
+          <option value="hi">हिंदी</option>
+        </select>
+      </div>
+      <div style="text-align: right; align-self: end">
+        <span class="small-note" id="note_trans"
+          >Default language: Marathi</span
+        >
+      </div>
+    </div>
+
+    <form method="POST" action="/predict_crop">
+      <div class="field">
+        <label class="field-label" data-key="nitrogen_label"
+          >नायट्रोजन (N)</label
+        >
+        <input
+          type="number"
+          step="any"
+          name="Nitrogen"
+          id="nitrogen_input"
+          placeholder="नायट्रोजन (N)"
+          required
+        />
+      </div>
+
+      <div class="field">
+        <label class="field-label" data-key="phos_label">फॉस्फरस (P)</label>
+        <input
+          type="number"
+          step="any"
+          name="Phosporus"
+          id="phos_input"
+          placeholder="फॉस्फरस (P)"
+          required
+        />
+      </div>
+
+      <div class="field">
+        <label class="field-label" data-key="potassium_label"
+          >पोटॅशियम (K)</label
+        >
+        <input
+          type="number"
+          step="any"
+          name="Potassium"
+          id="potassium_input"
+          placeholder="पोटॅशियम (K)"
+          required
+        />
+      </div>
+
+      <div class="field">
+        <label class="field-label" data-key="temp_label">तापमान (°C)</label>
+        <input
+          type="number"
+          step="any"
+          name="Temperature"
+          id="temp_input"
+          placeholder="तापमान (°C)"
+          required
+        />
+      </div>
+
+      <div class="field">
+        <label class="field-label" data-key="humidity_label"
+          >आर्द्रता (%)</label
+        >
+        <input
+          type="number"
+          step="any"
+          name="Humidity"
+          id="humidity_input"
+          placeholder="आर्द्रता (%)"
+          required
+        />
+      </div>
+
+      <div class="field">
+        <label class="field-label" data-key="phsoil_label">माती pH</label>
+        <input
+          type="number"
+          step="any"
+          name="pH"
+          id="ph_input"
+          placeholder="माती pH"
+          required
+        />
+      </div>
+
+      <div class="field">
+        <label class="field-label" data-key="rain_label">वर्षा (मिमी)</label>
+        <input
+          type="number"
+          step="any"
+          name="Rainfall"
+          id="rain_input"
+          placeholder="वर्षा (मिमी)"
+          required
+        />
+      </div>
+
+      <button type="submit" id="submit_button">भविष्यवाणी करा</button>
+    </form>
+
+    <a
+      href="/"
+      style="
+        display: block;
+        text-align: center;
+        margin-top: 15px;
+        color: #2b4c7c;
+        text-decoration: none;
+      "
+      id="back_link"
+      >&larr; मुख्यपृष्ठावर परत</a
+    >
+
+    {% if result %}
+    <div class="result">{{ result }}</div>
+    {% endif %}
+
+    <script>
+      const translations = {
+        mr: {
+          page_title: "🌿 नवीन पीकाचे सुचवणी",
+          language_label: "भाषा",
+          note_trans: "डिफॉल्ट भाषा: मराठी",
+          nitrogen_label: "नायट्रोजन (N)",
+          nitrogen_placeholder: "नायट्रोजन (N)",
+          phos_label: "फॉस्फरस (P)",
+          phos_placeholder: "फॉस्फरस (P)",
+          potassium_label: "पोटॅशियम (K)",
+          potassium_placeholder: "पोटॅशियम (K)",
+          temp_label: "तापमान (°C)",
+          temp_placeholder: "तापमान (°C)",
+          humidity_label: "आर्द्रता (%)",
+          humidity_placeholder: "आर्द्रता (%)",
+          phsoil_label: "माती pH",
+          phsoil_placeholder: "माती pH",
+          rain_label: "वर्षा (मिमी)",
+          rain_placeholder: "वर्षा (मिमी)",
+          submit_button: "भविष्यवाणी करा",
+          back_link: "← मुख्यपृष्ठावर परत",
+        },
+        en: {
+          page_title: "🌿 New Crop Suggestions",
+          language_label: "Language",
+          note_trans: "Default language: Marathi",
+          nitrogen_label: "Nitrogen (N)",
+          nitrogen_placeholder: "Nitrogen (N)",
+          phos_label: "Phosphorus (P)",
+          phos_placeholder: "Phosphorus (P)",
+          potassium_label: "Potassium (K)",
+          potassium_placeholder: "Potassium (K)",
+          temp_label: "Temperature (°C)",
+          temp_placeholder: "Temperature (°C)",
+          humidity_label: "Humidity (%)",
+          humidity_placeholder: "Humidity (%)",
+          phsoil_label: "Soil pH",
+          phsoil_placeholder: "Soil pH",
+          rain_label: "Rainfall (mm)",
+          rain_placeholder: "Rainfall (mm)",
+          submit_button: "Predict Crop",
+          back_link: "← Back to Home",
+        },
+        hi: {
+          page_title: "🌿 नई फसल सुझाएँ",
+          language_label: "भाषा",
+          note_trans: "डिफ़ॉल्ट भाषा: मराठी",
+          nitrogen_label: "नाइट्रोजन (N)",
+          nitrogen_placeholder: "नाइट्रोजन (N)",
+          phos_label: "फॉस्फोरस (P)",
+          phos_placeholder: "फॉस्फोरस (P)",
+          potassium_label: "पोटैशियम (K)",
+          potassium_placeholder: "पोटैशियम (K)",
+          temp_label: "तापमान (°C)",
+          temp_placeholder: "तापमान (°C)",
+          humidity_label: "आर्द्रता (%)",
+          humidity_placeholder: "आर्द्रता (%)",
+          phsoil_label: "मिट्टी pH",
+          phsoil_placeholder: "मिट्टी pH",
+          rain_label: "वर्षा (मिमी)",
+          rain_placeholder: "वर्षा (मिमी)",
+          submit_button: "पूर्वानुमान करें",
+          back_link: "← मुख पृष्ठ पर वापस",
+        },
+      };
+
+      const langSelect = document.getElementById("langSelect");
+      const pageTitle = document.getElementById("page_title");
+      const noteTrans = document.getElementById("note_trans");
+      const submitButton = document.getElementById("submit_button");
+      const backLink = document.getElementById("back_link");
+
+      function applyTranslations(lang) {
+        const t = translations[lang] || translations["mr"];
+        pageTitle.innerText = t.page_title;
+        document.getElementById("language_label").innerText = t.language_label;
+        noteTrans.innerText = t.note_trans;
+        document.querySelector('[data-key="nitrogen_label"]').innerText =
+          t.nitrogen_label;
+        document.getElementById("nitrogen_input").placeholder =
+          t.nitrogen_placeholder;
+
+        document.querySelector('[data-key="phos_label"]').innerText =
+          t.phos_label;
+        document.getElementById("phos_input").placeholder = t.phos_placeholder;
+
+        document.querySelector('[data-key="potassium_label"]').innerText =
+          t.potassium_label;
+        document.getElementById("potassium_input").placeholder =
+          t.potassium_placeholder;
+
+        document.querySelector('[data-key="temp_label"]').innerText =
+          t.temp_label;
+        document.getElementById("temp_input").placeholder = t.temp_placeholder;
+
+        document.querySelector('[data-key="humidity_label"]').innerText =
+          t.humidity_label;
+        document.getElementById("humidity_input").placeholder =
+          t.humidity_placeholder;
+
+        document.querySelector('[data-key="phsoil_label"]').innerText =
+          t.phsoil_label;
+        document.getElementById("ph_input").placeholder = t.phsoil_placeholder;
+
+        document.querySelector('[data-key="rain_label"]').innerText =
+          t.rain_label;
+        document.getElementById("rain_input").placeholder = t.rain_placeholder;
+
+        submitButton.innerText = t.submit_button;
+        backLink.innerText = t.back_link;
+
+        document.documentElement.lang = lang;
+      }
+
+      // initial language Marathi
+      applyTranslations("mr");
+
+      langSelect.addEventListener("change", (e) => {
+        applyTranslations(e.target.value);
+      });
+    </script>
+  </body>
+</html>

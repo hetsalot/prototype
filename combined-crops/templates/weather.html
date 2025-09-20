@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="mr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Weather Alerts</title>
+    <style>
+      :root {
+        --primary: #2b4c7c;
+        --accent: #e67e22;
+        --muted: #476089;
+      }
+      body {
+        font-family: Arial, sans-serif;
+        margin: 0;
+        background: #f5f5f5;
+        padding: 20px;
+        color: var(--primary);
+        text-align: center;
+      }
+      h2 {
+        margin-bottom: 12px;
+      }
+      .info {
+        max-width: 640px;
+        margin: 12px auto;
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        box-shadow: 0 6px 18px rgba(43, 76, 124, 0.08);
+      }
+      form {
+        margin-top: 8px;
+      }
+      input[type="text"] {
+        padding: 12px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        width: 100%;
+        box-sizing: border-box;
+      }
+      button {
+        margin-top: 12px;
+        padding: 12px 16px;
+        border: none;
+        border-radius: 8px;
+        background: var(--accent);
+        color: white;
+        font-weight: bold;
+        cursor: pointer;
+      }
+      .lang-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 12px;
+      }
+      select {
+        padding: 8px;
+        border-radius: 6px;
+        border: 1px solid #ccc;
+      }
+
+      /* Cards */
+      .cards {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-top: 16px;
+      }
+      @media (min-width: 720px) {
+        .cards {
+          flex-direction: row;
+        }
+      }
+      .card {
+        flex: 1;
+        background: white;
+        padding: 16px;
+        border-radius: 12px;
+        box-shadow: 0 10px 30px rgba(43, 76, 124, 0.06);
+        text-align: left;
+      }
+      .card h3 {
+        margin: 0 0 8px 0;
+      }
+      .muted {
+        color: var(--muted);
+        font-size: 0.95rem;
+      }
+      .detail {
+        font-weight: 600;
+        margin: 8px 0;
+      }
+      .suggestion {
+        background: #fff7ed;
+        border-left: 4px solid var(--accent);
+        padding: 12px;
+        border-radius: 8px;
+      }
+      .back-link {
+        display: block;
+        text-align: center;
+        margin-top: 14px;
+        color: var(--primary);
+        text-decoration: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h2 id="page_title">⛅ हवामान सूचना</h2>
+
+    <div class="info">
+      <div class="lang-row">
+        <label id="language_label" style="font-weight: bold">भाषा</label>
+        <div style="display: flex; gap: 8px; align-items: center">
+          <select id="langSelect">
+            <option value="mr">मराठी</option>
+            <option value="en">English</option>
+            <option value="hi">हिंदी</option>
+          </select>
+          <div class="muted" id="note_trans">डिफॉल्ट: मराठी</div>
+        </div>
+      </div>
+
+      <p id="intro">
+        तुमच्या शेतीच्या भागासाठी तात्काळ हवामान अपडेट आणि सूचना मिळवा.
+      </p>
+
+      <form method="POST" action="/get_weather" id="weatherForm">
+        <input
+          type="text"
+          name="location"
+          id="location_input"
+          placeholder="Location"
+          required
+        />
+        <button type="submit" id="getWeatherBtn">Get Weather</button>
+      </form>
+
+      <a href="/" class="back-link" id="back_link">&larr; मुख्यपृष्ठावर परत</a>
+
+      <div
+        id="weather_container"
+        class="cards"
+        style="display: none; margin-top: 18px"
+      ></div>
+
+      {% if weather %}
+      <div class="result">{{ weather }}</div>
+      {% endif %}
+    </div>
+
+    <script>
+      // Translations for UI + hardcoded Mumbai card content
+      const translations = {
+        mr: {
+          page_title: "⛅ हवामान सूचना",
+          language_label: "भाषा",
+          note_trans: "डिफॉल्ट: मराठी",
+          intro:
+            "तुमच्या शेतीच्या भागासाठी तात्काळ हवामान अपडेट आणि सूचना मिळवा.",
+          location_placeholder: "ठिकाण प्रविष्ट करा",
+          getWeather: "हवामान मिळवा",
+          back_link: "← मुख्यपृष्ठावर परत",
+          // Mumbai hardcoded content
+          mumbai_weather_title: "हवामान - रविवार, 1:00 दुपारी",
+          mumbai_weather_line: "हलकी पाऊस, 28°C",
+          mumbai_weather_stats: "पर्जन्य: 75% · आर्द्रता: 85% · वारा: 11 km/h",
+          mumbai_suggestion_title: "सूचना",
+          mumbai_suggestion_text:
+            "तुमच्या शेतात पावसाचे पाणी साचत आहे का हे नक्की तपासा — मुळे खराब होऊ शकतात. तसेच, पानांवर नवीन कीटक किंवा डाग आहेत का ते तपासा.",
+        },
+        en: {
+          page_title: "⛅ Weather Alerts",
+          language_label: "Language",
+          note_trans: "Default: Marathi",
+          intro:
+            "Get instant weather updates and suggestions for your farming region.",
+          location_placeholder: "Enter Location",
+          getWeather: "Get Weather",
+          back_link: "← Back to Home",
+          mumbai_weather_title: "Weather - Sunday, 1:00 pm",
+          mumbai_weather_line: "Light rain, 28°C",
+          mumbai_weather_stats:
+            "Precipitation: 75% · Humidity: 85% · Wind: 11 km/h",
+          mumbai_suggestion_title: "Suggestions",
+          mumbai_suggestion_text:
+            "Make sure rainwater is not collecting in your fields, as it can harm the roots. Also, check your plants for any new insects or spots on the leaves.",
+        },
+        hi: {
+          page_title: "⛅ मौसम सूचनाएं",
+          language_label: "भाषा",
+          note_trans: "डिफ़ॉल्ट: मराठी",
+          intro:
+            "अपने कृषि क्षेत्र के लिए तात्कालिक मौसम अपडेट और सुझाव प्राप्त करें।",
+          location_placeholder: "स्थान दर्ज करें",
+          getWeather: "मौसम प्राप्त करें",
+          back_link: "← मुख पृष्ठ पर वापस",
+          mumbai_weather_title: "मौसम - रविवार, 1:00 दोपहर",
+          mumbai_weather_line: "हल्की बारिश, 28°C",
+          mumbai_weather_stats: "वर्षा: 75% · आर्द्रता: 85% · हवा: 11 km/h",
+          mumbai_suggestion_title: "सुझाव",
+          mumbai_suggestion_text:
+            "यह सुनिश्चित करें कि आपके खेतों में बारिश का पानी जमा न हो — इससे जड़ों को नुकसान हो सकता है। साथ ही, पत्तियों पर नए कीट या धब्बे तो नहीं हैं, जांचें।",
+        },
+      };
+
+      const langSelect = document.getElementById("langSelect");
+      const pageTitle = document.getElementById("page_title");
+      const languageLabel = document.getElementById("language_label");
+      const noteTrans = document.getElementById("note_trans");
+      const intro = document.getElementById("intro");
+      const locationInput = document.getElementById("location_input");
+      const getWeatherBtn = document.getElementById("getWeatherBtn");
+      const backLink = document.getElementById("back_link");
+      const weatherContainer = document.getElementById("weather_container");
+
+      function applyTranslations(lang) {
+        const t = translations[lang] || translations["mr"];
+        pageTitle.innerText = t.page_title;
+        languageLabel.innerText = t.language_label;
+        noteTrans.innerText = t.note_trans;
+        intro.innerText = t.intro;
+        locationInput.placeholder = t.location_placeholder;
+        getWeatherBtn.innerText = t.getWeather;
+        backLink.innerText = t.back_link;
+
+        // If Mumbai cards are visible, update their content too
+        if (weatherContainer.style.display !== "none") {
+          renderMumbaiCards(lang);
+        }
+        document.documentElement.lang = lang;
+      }
+
+      // initial Marathi
+      applyTranslations("mr");
+
+      langSelect.addEventListener("change", (e) =>
+        applyTranslations(e.target.value)
+      );
+
+      // Helper to render two cards for Mumbai
+      function renderMumbaiCards(lang = "mr") {
+        const t = translations[lang] || translations["mr"];
+        weatherContainer.style.display = "flex";
+        weatherContainer.innerHTML = `
+          <div class="card">
+            <h3>${t.mumbai_weather_title}</h3>
+            <div class="muted">${t.mumbai_weather_line}</div>
+            <div class="detail">${t.mumbai_weather_stats}</div>
+            <div class="muted">Updated just now</div>
+          </div>
+          <div class="card">
+            <h3>${t.mumbai_suggestion_title}</h3>
+            <div class="suggestion">${t.mumbai_suggestion_text}</div>
+          </div>
+        `;
+      }
+
+      // On submit: if location is Mumbai (english or local), show hardcoded cards and prevent real POST
+      const form = document.getElementById("weatherForm");
+      form.addEventListener("submit", (e) => {
+        const val = locationInput.value.trim().toLowerCase();
+        if (val === "mumbai" || val === "मुंबई") {
+          e.preventDefault(); // UI-only hardcoded behavior for Mumbai
+          const lang = langSelect.value || "mr";
+          renderMumbaiCards(lang);
+          // scroll into view smoothly
+          weatherContainer.scrollIntoView({ behavior: "smooth" });
+        } else {
+          // allow form to submit as normal for other locations
+        }
+      });
+    </script>
+  </body>
+</html>

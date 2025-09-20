@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>कृषिMitra - Plant Disease Detection</title>
+    <link
+      rel="icon"
+      href="{{ url_for('static', filename='images/logo.svg') }}"
+      type="image/svg+xml"
+    />
+    <style>
+      body {
+        margin: 0;
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(to bottom, #ffffff, #f4f4f4);
+        color: #333;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+      }
+
+      header {
+        text-align: center;
+        padding: 20px;
+      }
+
+      header h1 {
+        font-size: 2.2rem;
+        margin-bottom: 10px;
+        color: #ff9933;
+      }
+
+      header h2 {
+        font-size: 1.2rem;
+        font-weight: 500;
+        color: #138808;
+      }
+
+      form {
+        background: #fff;
+        border: 2px solid #ff9933;
+        border-radius: 12px;
+        padding: 25px 30px;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+        text-align: center;
+        width: 100%;
+        max-width: 400px;
+      }
+
+      input[type="file"] {
+        margin: 15px 0;
+        padding: 8px;
+        border: 1px solid #ccc;
+        border-radius: 8px;
+        width: 100%;
+      }
+
+      button {
+        background-color: #ff9933;
+        color: white;
+        font-size: 1rem;
+        font-weight: bold;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: background 0.3s ease;
+      }
+
+      button:hover {
+        background-color: #e68220;
+      }
+
+      .result-container {
+        margin-top: 30px;
+        background: #fff;
+        border: 2px solid #138808;
+        border-radius: 12px;
+        padding: 20px;
+        box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+        max-width: 600px;
+        width: 100%;
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+      }
+
+      .result-img-container {
+        flex: 1;
+        min-width: 150px;
+      }
+
+      .result-image {
+        max-width: 100%;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+      }
+
+      .result-text {
+        flex: 2;
+        min-width: 200px;
+      }
+
+      .result-text h3 {
+        margin-top: 0;
+        color: #ff9933;
+      }
+
+      .confidence {
+        display: inline-block;
+        background: #138808;
+        color: white;
+        font-size: 0.9rem;
+        font-weight: bold;
+        padding: 4px 8px;
+        border-radius: 6px;
+        margin-left: 8px;
+      }
+
+      .result-text p {
+        margin: 5px 0;
+        color: #333;
+      }
+
+      footer {
+        margin-top: 30px;
+        font-size: 0.9rem;
+        color: #555;
+      }
+
+      footer span {
+        color: #138808;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h1>कृषिMitra</h1>
+      <h2>Plant Disease Detection & Smart Recommendations</h2>
+    </header>
+
+    <form action="/upload/" method="post" enctype="multipart/form-data">
+      <label for="img">Upload an image of your plant:</label>
+      <input
+        type="file"
+        id="img"
+        name="img"
+        accept="image/png, image/jpeg"
+        required
+      />
+      <button type="submit">Submit</button>
+    </form>
+
+    {% if result %}
+    <div class="result-container">
+      <div class="result-img-container">
+        <img src="{{ imagepath }}" alt="Uploaded Image" class="result-image" />
+      </div>
+      <div class="result-text">
+        <h3>
+          {{ prediction['name'] }} {% if prediction.confidence %}
+          <span class="confidence">
+            {{ (prediction.confidence * 100) | round(2) }}%
+          </span>
+          {% endif %}
+        </h3>
+        <p><strong>Cause:</strong> {{ prediction['cause'] }}</p>
+        <p><strong>Cure:</strong> {{ prediction['cure'] }}</p>
+      </div>
+    </div>
+    {% endif %}
+
+    <footer>Powered by <span>Synapse</span></footer>
+  </body>
+</html>
